@@ -363,11 +363,6 @@ function setupStudyWorkspace() {
         });
     });
 
-    // Socratic Coaching Toggle
-    document.getElementById("coaching-toggle").addEventListener("change", (e) => {
-        state.coachingEnabled = e.target.checked;
-        showToast(state.coachingEnabled ? "Socratic guidance enabled." : "Direct solutions enabled.", "focus");
-    });
 
     // Recalibrate Baseline button in header
     document.getElementById("recalibrate-header-btn").addEventListener("click", () => {

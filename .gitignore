@@ -18,3 +18,14 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Node dependency and runtime exclusions
+node_modules/
+node.zip
+node-v20.11.1-win-x64/
+
+# Test output directories
+coverage/
+test-results/
+playwright-report/
+.playwright-artifacts-*/

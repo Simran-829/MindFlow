@@ -203,14 +203,23 @@ function autoCorrelate(buffer, sampleRate) {
 
     if (zeroCrossing === 0) zeroCrossing = 4; // fallback
 
-    // Find the peak after the first zero crossing
-    let peakOffset = -1;
-    let peakVal = 0;
+    // Find the absolute highest peak value after the first zero crossing
+    let maxVal = 0;
     for (let i = zeroCrossing; i < maxSamples; i++) {
         if (r[i] > r[i-1] && r[i] > r[i+1]) {
-            if (r[i] > peakVal) {
-                peakVal = r[i];
+            if (r[i] > maxVal) {
+                maxVal = r[i];
+            }
+        }
+    }
+
+    // Find the first peak that is at least 80% of the maximum peak value
+    let peakOffset = -1;
+    for (let i = zeroCrossing; i < maxSamples; i++) {
+        if (r[i] > r[i-1] && r[i] > r[i+1]) {
+            if (r[i] >= 0.8 * maxVal) {
                 peakOffset = i;
+                break;
             }
         }
     }

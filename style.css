@@ -1173,6 +1173,11 @@ input:checked + .slider:before {
     transition: border 0.2s ease;
 }
 
+.form-group select option {
+    background-color: #0e1015;
+    color: #f9fafb;
+}
+
 .form-group input:focus, .form-group select:focus {
     border-color: #00f2fe;
 }
