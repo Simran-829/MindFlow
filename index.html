@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindFlow — Socratic Study-Flow & Mental Resilience Co-Pilot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Top Navigation Header -->
+        <header role="banner">
+            <button class="logo-section" id="logo-btn" aria-label="Go to Study Workspace" style="background:transparent; border:none; cursor:pointer; display:flex; align-items:center; gap:0.75rem; text-align:left; outline:none; padding:0;">
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="16" cy="16" r="14" stroke="url(#logoGrad)" stroke-width="3" stroke-dasharray="60 30"/>
+                    <circle cx="16" cy="16" r="6" fill="url(#logoGrad)"/>
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#00f2fe"/>
+                            <stop offset="100%" stop-color="#4facfe"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1>MindFlow</h1>
+                <div class="logo-badge" aria-label="Version Profile">Resilience AI</div>
+            </button>
+            
+            <div class="nav-controls">
+                <!-- Tab list for accessibility -->
+                <div class="view-tabs" role="tablist" aria-label="App Navigation">
+                    <button class="tab-btn active" data-view="study" role="tab" aria-selected="true" aria-controls="view-study">Study Workspace</button>
+                    <button class="tab-btn" data-view="dashboard" role="tab" aria-selected="false" aria-controls="view-dashboard">Performance Analytics</button>
+                    <button class="tab-btn" data-view="exam" role="tab" aria-selected="false" aria-controls="view-exam">Mock Exam</button>
+                </div>
+                <button class="icon-btn" id="settings-btn" title="Manage Profile Settings" aria-label="Open Settings" style="margin-left: 0.5rem; border: 1px solid var(--border);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- View 1: Study Mode Workspace -->
+        <main id="view-study" class="workspace-grid view-section" role="tabpanel">
+            <!-- Left Side: Socratic Doubt Resolver Console -->
+            <section class="glass-panel study-panel" id="socratic-console-panel" aria-label="Socratic Console">
+                <div class="panel-header">
+                    <h2>Doubt-Solving Space</h2>
+                    <div class="switch-container">
+                        <span>Socratic Coaching</span>
+                        <label class="switch" aria-label="Toggle Socratic tutoring or direct solutions">
+                            <input type="checkbox" id="coaching-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Chat Box Area -->
+                <div class="chat-container" id="chat-box" aria-live="polite">
+                    <!-- Dynamic chat injected here -->
+                    <div class="empty-state" id="chat-empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04334 16.4525L2 22L7.5475 20.9567C8.88837 21.6244 10.4003 22 12 22Z" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 12H8.01" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 12H12.01" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 12H16.01" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p>Got stuck on a concept or equation?</p>
+                        <span>Describe your doubt in text, upload a photo, or dictate with voice.</span>
+                    </div>
+                </div>
+
+                <!-- Sample doubt templates (Zero-state prompts) -->
+                <div class="quick-samples" id="quick-samples-container">
+                    <p>SAMPLE DOUBTS FOR TESTING:</p>
+                    <div class="sample-row">
+                        <button class="sample-btn" data-type="jee">JEE Physics (Rotational Dynamics)</button>
+                        <button class="sample-btn" data-type="neet">NEET Biology (DNA Replication)</button>
+                        <button class="sample-btn" data-type="upsc">UPSC History (Mughal Revenue Systems)</button>
+                    </div>
+                </div>
+
+                <!-- Input area containing text area, send, micro-interactions -->
+                <div class="input-panel">
+                    <div class="image-preview-zone hidden" id="image-preview-box">
+                        <img src="" class="preview-thumb" id="preview-image-src" alt="Equation doubt">
+                        <span id="preview-image-name">math_equation_blocker.jpg</span>
+                        <button class="icon-btn" id="remove-preview-btn" aria-label="Remove image">✕</button>
+                    </div>
+
+                    <div class="input-row">
+                        <!-- Photo Upload Trigger -->
+                        <button class="icon-btn" id="attach-btn" title="Upload Doubt Image" aria-label="Upload Image">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </button>
+                        <input type="file" id="image-input" accept="image/*" class="hidden">
+
+                        <!-- Textarea input -->
+                        <div class="textarea-wrapper">
+                            <textarea id="doubt-input" placeholder="Type your doubt here... MindFlow reads typing rhythm to track frustration." aria-label="Enter doubt message"></textarea>
+                        </div>
+
+                        <!-- Speech mic button -->
+                        <button class="icon-btn" id="mic-btn" title="Hold to talk (Analyzes vocal stress)" aria-label="Hold to talk">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M12 1v10M19 8a7 7 0 0 1-14 0" stroke-linecap="round"/>
+                                <rect x="9" y="3" width="6" height="8" rx="3" ry="3"/>
+                            </svg>
+                        </button>
+
+                        <!-- Send doubt button -->
+                        <button class="icon-btn primary" id="send-btn" title="Send doubt" aria-label="Send message">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: MindFlow Orb state panel & Stress Gauges -->
+            <aside class="aura-sidebar" aria-label="MindFlow Telemetry Status">
+                <div class="glass-panel orb-panel" id="orb-status-panel">
+                    <div class="aura-orb-wrapper">
+                        <div class="aura-orb" id="orb-glow-sphere" aria-hidden="true"></div>
+                        <div class="aura-orb-core">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4M12 16h.01"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="state-label" id="orb-state-txt">Flow State</div>
+                    <div class="state-desc" id="orb-state-desc">MindFlow is calibrating. Start typing or speak your doubts to evaluate stress triggers.</div>
+                </div>
+
+                <!-- Real-time Stress Gauges -->
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <h2>Ambient Cognition</h2>
+                        <!-- Recalibration Button for UX fix -->
+                        <button class="sample-btn" id="recalibrate-header-btn" style="margin: 0; padding: 0.25rem 0.5rem; font-size: 0.7rem;" aria-label="Recalibrate Voice Baseline">Recalibrate Mic</button>
+                    </div>
+                    <div class="metric-meters">
+                        <div class="meter-row">
+                            <div class="meter-header">
+                                <span>Keyboard Cadence (Jitter)</span>
+                                <span id="metric-keys-val">0%</span>
+                            </div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="metric-keys-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="meter-row">
+                            <div class="meter-header">
+                                <span>Vocal Tension (Acoustic)</span>
+                                <span id="metric-voice-val">0%</span>
+                            </div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="metric-voice-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="meter-row">
+                            <div class="meter-header">
+                                <span>Fatigue Accumulation</span>
+                                <span id="metric-fatigue-val">12%</span>
+                            </div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="metric-fatigue-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Mic Audio Visualizer wave -->
+                    <div class="audio-visualizer-wave hidden" id="audio-wave-container" style="margin-top: 1rem;" aria-hidden="true">
+                    </div>
+
+                    <!-- Real-time Stress simulator dashboard for Demo purposes -->
+                    <div class="sim-controls">
+                        <h3>Demo Stress Controller</h3>
+                        <div class="sim-slider-group">
+                            <label for="sim-typing-slider">Typing Cadence (Frustration) <span id="sim-typing-txt">Low</span></label>
+                            <input type="range" id="sim-typing-slider" min="0" max="100" value="15">
+                        </div>
+                        <div class="sim-slider-group">
+                            <label for="sim-vocal-slider">Vocal Tension (Tone Jitter) <span id="sim-vocal-txt">Low</span></label>
+                            <input type="range" id="sim-vocal-slider" min="0" max="100" value="10">
+                        </div>
+                        <div class="sim-actions">
+                            <button class="sim-btn" id="btn-trigger-panic">Force Crisis Intercept</button>
+                            <button class="sim-btn" id="btn-reset-state">Restore Calm</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Soundscape Card -->
+                <div class="sound-panel">
+                    <div class="sound-info">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M9 18V5l12-2v13"/>
+                            <circle cx="6" cy="18" r="3"/>
+                            <circle cx="18" cy="16" r="3"/>
+                        </svg>
+                        <span>Study Ambient: Lo-Fi beats</span>
+                    </div>
+                    <button class="icon-btn" id="music-toggle-btn" aria-label="Toggle Play Ambient Audio">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </button>
+                </div>
+            </aside>
+        </main>
+
+        <!-- View 2: Analytics Dashboard Mode -->
+        <div id="view-dashboard" class="dashboard-grid view-section hidden" role="tabpanel">
+            <!-- Stat Cards Row -->
+            <div class="dash-stats-row">
+                <div class="stat-card">
+                    <span class="stat-label">Productive Hours Today</span>
+                    <span class="stat-value" id="stat-hours">6.8h</span>
+                    <div class="stat-trend trend-up">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                            <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                        <span>12% from yesterday</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-label">MindFlow Calming Intercepts</span>
+                    <span class="stat-value" id="stat-intercepts">2</span>
+                    <div class="stat-trend trend-down">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                        <span>-50% (lower panic today)</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-label">Doubts Resolved (Socratic)</span>
+                    <span class="stat-value" id="stat-doubts">14</span>
+                    <div class="stat-trend trend-up">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                            <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                        <span>4 new subjects explored</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-label">Parental Trust Index</span>
+                    <span class="stat-value">92%</span>
+                    <div class="stat-trend trend-up">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                            <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                        <span>High support, zero privacy leakage</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Panel 1: Flow state timelines -->
+            <div class="glass-panel chart-panel">
+                <div class="panel-header">
+                    <h2>Cognitive Alertness Timeline</h2>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="canvas-flow-chart" aria-label="Alertness and frustration curve chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart Panel 2: Heatmap stress triggers -->
+            <div class="glass-panel chart-panel">
+                <div class="panel-header">
+                    <h2>Frustration Hot Spots (by Subject & Time)</h2>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="canvas-stress-heatmap" aria-label="Weekly study stress heatmap chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Parent Oversight / Trust View -->
+            <div class="glass-panel" style="grid-column: span 2;">
+                <div class="panel-header">
+                    <h2>Parent Wellness Portal Preview</h2>
+                    <span class="logo-badge" style="background: rgba(161,128,255,0.1); border-color: rgba(161,128,255,0.2); color: #a180ff;">Privacy Safe</span>
+                </div>
+                <div style="display: flex; gap: 2rem; margin-top: 0.5rem; align-items: center; justify-content: space-between;">
+                    <div style="max-width: 60%; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+                        MindFlow protects student details (chat transcripts and search topics) but aggregates general wellness signals for parents. This reassures parents and reduces external expectations pressure without compromising the student's personal safe space.
+                    </div>
+                    <div class="decompression-exercise" style="max-width: 35%; margin-top: 0;">
+                        <h4>Current Digest sent to Parent:</h4>
+                        <p><strong>Aarav's State:</strong> 🟢 Focused and emotionally stable. 3 mock tests completed with positive coping methods.</p>
+                        <p><strong>Parent Recommendation:</strong> Aarav worked hard on organic chemistry. Offer a word of encouragement without mentioning test marks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Mock Exam Practice Mode -->
+        <div id="view-exam" class="mock-exam-container view-section hidden" role="tabpanel">
+            <!-- Left Side: Interactive mock exam sheet -->
+            <div class="exam-content" id="mock-exam-viewport">
+                <div class="exam-question-header">
+                    <span id="exam-subject-lbl">JEE Physics Mock Series</span>
+                    <span id="exam-timer-lbl">Time Remaining: 02:45:10</span>
+                </div>
+                <h3 class="question-text" id="exam-question-text">
+                    A solid cylinder of mass M and radius R rolls without slipping down an inclined plane of angle θ. The acceleration of the center of mass of the cylinder is:
+                </h3>
+
+                <div class="option-list" role="radiogroup" aria-label="Exam Answers options">
+                    <div class="exam-option" data-option="a" role="radio" aria-checked="false" tabindex="0">
+                        <div class="option-letter">A</div>
+                        <div class="option-desc">g sin θ</div>
+                    </div>
+                    <div class="exam-option" data-option="b" role="radio" aria-checked="false" tabindex="0">
+                        <div class="option-letter">B</div>
+                        <div class="option-desc">2/3 g sin θ</div>
+                    </div>
+                    <div class="exam-option" data-option="c" role="radio" aria-checked="false" tabindex="0">
+                        <div class="option-letter">C</div>
+                        <div class="option-desc">1/2 g sin θ</div>
+                    </div>
+                    <div class="exam-option" data-option="d" role="radio" aria-checked="false" tabindex="0">
+                        <div class="option-letter">D</div>
+                        <div class="option-desc">3/4 g sin θ</div>
+                    </div>
+                </div>
+
+                <div class="exam-nav-row">
+                    <button class="exam-btn" id="exam-prev-btn">✕ Skip</button>
+                    <button class="exam-btn primary" id="exam-next-btn">Next Question ➔</button>
+                </div>
+            </div>
+
+            <!-- Right Side: Exam Focus widget panel -->
+            <div class="aura-sidebar">
+                <div class="glass-panel orb-panel">
+                    <div class="aura-orb-wrapper">
+                        <div class="aura-orb" id="exam-orb-glow" aria-hidden="true"></div>
+                        <div class="aura-orb-core">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M8 12.5l3 3 5-6"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="state-label" id="exam-orb-state-txt">Focus Mode</div>
+                    <div class="state-desc">Monitoring heart rate calibration, eye-strain, and interaction jitter. Stay calm.</div>
+                </div>
+
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <h2>Exam Stress Metrics</h2>
+                    </div>
+                    <div class="metric-meters">
+                        <div class="meter-row">
+                            <div class="meter-header">
+                                <span>Stress Index (Exam Jitter)</span>
+                                <span id="metric-exam-stress-val">20%</span>
+                            </div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="metric-exam-stress-fill" style="width: 20%;"></div>
+                            </div>
+                        </div>
+                        <div class="meter-row">
+                            <div class="meter-header">
+                                <span>Attention Continuity</span>
+                                <span id="metric-exam-attention-val">95%</span>
+                            </div>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="metric-exam-attention-fill" style="width: 95%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sim-controls" style="margin-top: 1rem;">
+                        <button class="sim-btn" id="btn-exam-trigger-stress">Simulate Exam Panic</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Setup Modal Overlay (Step-by-Step setup) -->
+    <div class="onboarding-overlay" id="onboarding-modal">
+        <div class="onboarding-card">
+            <!-- Step 1: User Profile & Target Exam -->
+            <div class="onboarding-step" id="onboard-step-1">
+                <h2>Calibrate Your MindFlow</h2>
+                <p>Welcome. Tell us what you are preparing for so MindFlow can customize its Socratic doubt database and pacing thresholds.</p>
+                
+                <div class="form-group">
+                    <label for="onboard-name">Student Name</label>
+                    <input type="text" id="onboard-name" placeholder="Enter your name" value="Aarav">
+                </div>
+
+                <div class="form-group">
+                    <label>Target Exam</label>
+                    <div class="exam-select-grid">
+                        <div class="exam-card selected" data-exam="jee" tabindex="0">JEE Main/Adv</div>
+                        <div class="exam-card" data-exam="neet" tabindex="0">NEET Biology</div>
+                        <div class="exam-card" data-exam="upsc" tabindex="0">UPSC Civils</div>
+                        <div class="exam-card" data-exam="cat" tabindex="0">CAT MBA</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="onboard-hours">Daily Study Target (Hours)</label>
+                    <select id="onboard-hours">
+                        <option value="6">6 Hours</option>
+                        <option value="8">8 Hours</option>
+                        <option value="10" selected>10 Hours</option>
+                        <option value="12">12+ Hours (Intense)</option>
+                    </select>
+                </div>
+
+                <div class="onboarding-nav">
+                    <button class="exam-btn primary" id="onboard-next-1">Next: Calibrate Voice ➔</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Voice baseline calibration -->
+            <div class="onboarding-step hidden" id="onboard-step-2">
+                <h2>Calibrate Calm Voice</h2>
+                <p>MindFlow analyzes vocal jitter to detect exam frustration. Record a brief 3-second sample of your "calm voice" by reading the quote below.</p>
+                
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 1rem; border-radius: 8px; font-style: italic; text-align: center; font-size: 0.95rem; color: #00f2fe; margin: 1rem 0;">
+                    "I am learning, I am improving, I can overcome these challenges."
+                </div>
+
+                <button class="voice-baseline-btn" id="voice-calibrate-btn" aria-live="polite">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="calibrate-mic-svg" aria-hidden="true">
+                        <path d="M12 1v10M19 8a7 7 0 0 1-14 0" stroke-linecap="round"/>
+                        <rect x="9" y="3" width="6" height="8" rx="3" ry="3"/>
+                    </svg>
+                    <span id="calibrate-btn-text">Click to Record Baseline</span>
+                </button>
+
+                <div class="audio-visualizer-wave hidden" id="calibrate-wave-container" aria-hidden="true">
+                </div>
+
+                <div class="onboarding-nav">
+                    <button class="exam-btn" id="onboard-back-2">Back</button>
+                    <button class="exam-btn primary" id="onboard-next-2" disabled>Finish Setup ➔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calming Interception Modal (Breathing Box & Recovery Overlay) -->
+    <div class="interception-overlay" id="calming-modal" role="dialog" aria-modal="true" aria-labelledby="calming-modal-title">
+        <div class="calm-container">
+            <div class="calm-header">
+                <h2 id="calming-modal-title">Flow Intercept Triggered</h2>
+                <p>MindFlow detected cognitive overload and heightened stress markers. Let's regain focus with a quick physiological sigh.</p>
+            </div>
+
+            <!-- Dynamic Breathing Sphere -->
+            <div class="breathing-sphere-outer">
+                <div class="breathing-sphere" id="pacing-bubble" aria-hidden="true"></div>
+            </div>
+
+            <div class="breath-instruction" id="breath-lbl-action" aria-live="assertive">Inhale deeply</div>
+            <div class="breath-subtitle" id="breath-lbl-timer">Prepare yourself...</div>
+
+            <div class="decompression-exercise" id="cbt-reframer-box">
+                <h4>Reframing Prompt:</h4>
+                <p id="cbt-reframer-text">"Getting stuck on this physics problem doesn't mean I am failing. It is simply where the next breakthrough lies."</p>
+            </div>
+
+            <button class="skip-btn" id="skip-breath-btn" aria-label="Skip breathing and return to study">Skip and return to Socratic Doubt Solver</button>
+        </div>
+    </div>
+
+    <!-- Toast Alerts container -->
+    <div class="toast-container" id="toasts"></div>
+
+    <!-- Settings Modal Overlay -->
+    <div class="onboarding-overlay hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="onboarding-card">
+            <div class="onboarding-step">
+                <h2 id="settings-title">Manage Details</h2>
+                <p>Modify your name, target hours, and exam settings, or reset your chat history.</p>
+                
+                <div class="form-group">
+                    <label for="settings-name">Student Name</label>
+                    <input type="text" id="settings-name" placeholder="Enter name">
+                </div>
+
+                <div class="form-group">
+                    <label for="settings-exam">Target Exam</label>
+                    <select id="settings-exam">
+                        <option value="jee">JEE Main/Adv</option>
+                        <option value="neet">NEET Biology</option>
+                        <option value="upsc">UPSC Civils</option>
+                        <option value="cat">CAT MBA</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="settings-hours">Daily Study Target</label>
+                    <select id="settings-hours">
+                        <option value="6">6 Hours</option>
+                        <option value="8">8 Hours</option>
+                        <option value="10">10 Hours</option>
+                        <option value="12">12+ Hours (Intense)</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; margin-top: 1.5rem; align-items:center;">
+                    <button class="sim-btn" id="btn-clear-data" style="border-color:#ef4444; color:#ef4444; max-width: 130px; margin:0;" aria-label="Clear Chat Logs">Reset Chats</button>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="exam-btn" id="settings-cancel-btn">Cancel</button>
+                        <button class="exam-btn primary" id="settings-save-btn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core App JS files -->
+    <script src="socraticEngine.js"></script>
+    <script src="voice.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
