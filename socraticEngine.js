@@ -153,11 +153,560 @@ const cbtReframingPrompts = [
     "My parents want me to succeed because they care. I can accept their love while letting go of the burden of their expectations."
 ];
 
+function extractTopic(query) {
+    if (!query) return "General Concept";
+    // Clean common starters
+    let topic = query.toLowerCase().trim();
+    // remove trailing question marks
+    topic = topic.replace(/[?.]+$/, "").trim();
+    
+    const starters = [
+        "how do i solve the", "how do i solve", "can you explain the", "can you explain",
+        "why is one", "why is", "what is the", "what is", "tell me about the", "tell me about",
+        "what are the", "what are", "how does the", "how does", "why does the", "why does",
+        "explain the features and significance of the", "explain the features and significance of",
+        "explain the", "explain", "describe the", "describe", "how to solve", "how to", "why"
+    ];
+    
+    for (const starter of starters) {
+        if (topic.startsWith(starter)) {
+            topic = topic.substring(starter.length).trim();
+            break;
+        }
+    }
+    
+    if (topic.length < 3) {
+        return "Custom Doubt";
+    }
+    
+    // Capitalize first letter of words
+    return topic.split(" ").map(word => {
+        if (!word) return "";
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(" ");
+}
+
+function classifySubject(query, targetExam) {
+    const text = query.toLowerCase();
+    
+    // Physics keywords
+    if (/\b(force|forces|acceleration|gravity|velocity|mass|friction|torque|cylinder|incline|motion|energy|work|momentum|speed|rotation|wave|optics|light|electricity|charge|magnet|gravitational|newton|dynamics|kinematics)\b/.test(text)) {
+        return "Physics";
+    }
+    // Biology keywords
+    if (/\b(dna|rna|cell|cells|replication|gene|genes|photosynthesis|protein|proteins|enzyme|enzymes|mitochondria|nucleus|organism|plant|animal|evolution|respiration|heart|blood|chromosome|chromosomes|mitosis|meiosis|nucleotide|ribosome|bacteria|virus|genetic)\b/.test(text)) {
+        return "Biology";
+    }
+    // History/Polity keywords
+    if (/\b(constitution|parliament|dahsala|mughal|akbar|history|india|revenue|tax|government|president|court|law|laws|british|revolution|emperor|ruler|treaty|dynasty|empire|democracy|legislative|judicial|sovereign)\b/.test(text)) {
+        return "Polity/History";
+    }
+    // Chemistry keywords
+    if (/\b(atom|atoms|molecule|molecules|reaction|reactions|acid|acids|base|bases|chemical|bond|bonds|electron|electrons|gas|gases|solution|metal|metals|periodic|organic|covalent|ionic|stoichiometry|equilibrium)\b/.test(text)) {
+        return "Chemistry";
+    }
+    // Math keywords
+    if (/\b(derivative|derivatives|integral|integrals|equation|equations|matrix|vector|vectors|geometry|triangle|limit|limits|function|functions|algebra|probability|calculus|theorem|solve|matrix|algebraic)\b/.test(text)) {
+        return "Math";
+    }
+    
+    // Fallback based on targetExam
+    const exam = (targetExam || "").toLowerCase();
+    if (exam === "jee") return "Physics/Math";
+    if (exam === "neet") return "Biology/Chemistry";
+    if (exam === "upsc") return "History/Polity";
+    if (exam === "cat") return "Quantitative Aptitude";
+    if (exam === "gate") return "Engineering Sciences";
+    if (exam === "cuet") return "General Studies";
+    
+    return "General Studies";
+}
+
+function generateDynamicSocraticTree(query, targetExam) {
+    const topic = extractTopic(query);
+    const subject = classifySubject(query, targetExam);
+    
+    let steps = [];
+    
+    if (subject === "Physics" || subject === "Physics/Math") {
+        steps = [
+            {
+                id: 1,
+                prompt: `To master "${topic}", let's start with the basics. What is the fundamental conservation law or force balance that governs "${topic}"?`,
+                options: [
+                    { 
+                        text: "Conservation of energy/momentum or net force/torque equations.", 
+                        nextId: 2, 
+                        points: 10, 
+                        positiveFeedback: "Spot on! Establishing the correct force or energy balance is the first rule of solving any physics problem." 
+                    },
+                    { 
+                        text: "Looking only at the final velocity or acceleration directly.", 
+                        nextId: 2, 
+                        points: 4, 
+                        negativeFeedback: "Close, but that skips the cause. In physics, we must first establish the active forces or conservation equations." 
+                    },
+                    { 
+                        text: "Ignoring external work and friction completely.", 
+                        nextId: 2, 
+                        points: 2, 
+                        negativeFeedback: "Be careful. Ignoring boundary constraints like friction or gravity components can lead to incorrect equations." 
+                    }
+                ]
+            },
+            {
+                id: 2,
+                prompt: `Great. Now, how do the linear/angular variables or parameters of "${topic}" relate to each other under constraints?`,
+                options: [
+                    { 
+                        text: "They are coupled directly by system constraints (like a = αR or F = ma).", 
+                        nextId: 3, 
+                        points: 10, 
+                        positiveFeedback: "Correct! Coupling variables through constraint equations allows us to reduce the number of unknowns." 
+                    },
+                    { 
+                        text: "They are completely independent of each other.", 
+                        nextId: 3, 
+                        points: 3, 
+                        negativeFeedback: "Not quite. If the system is constrained (like rolling without slipping), the variables are strictly coupled." 
+                    }
+                ]
+            },
+            {
+                id: 3,
+                prompt: `Perfect. If we solve the coupled equations for "${topic}" by substituting the parameters, what is the resulting acceleration or force expression?`,
+                options: [
+                    { 
+                        text: "A fraction of the unconstrained value (e.g., 2/3 g sin θ or reduced force).", 
+                        nextId: 4, 
+                        points: 10, 
+                        positiveFeedback: "Excellent! The friction or constraints reduce the acceleration or transfer energy to other degrees of freedom." 
+                    },
+                    { 
+                        text: "The full unconstrained value (e.g., acceleration = g).", 
+                        nextId: 4, 
+                        points: 3, 
+                        negativeFeedback: "Check the algebra. The constraint force reduces the linear acceleration. Try including the constraint factor." 
+                    }
+                ]
+            },
+            {
+                id: 4,
+                prompt: `Almost there! How can we sanity-check our derived formula for "${topic}"?`,
+                options: [
+                    { 
+                        text: "Verify the units match and check boundary limits (like angle θ = 0 or 90 degrees).", 
+                        nextId: 5, 
+                        points: 10, 
+                        positiveFeedback: "Superb! Testing boundary conditions (like θ=0 giving zero acceleration) is the hallmark of a great physicist." 
+                    },
+                    { 
+                        text: "Assume the math is perfect and proceed to the next question.", 
+                        nextId: 5, 
+                        points: 3, 
+                        negativeFeedback: "Always test boundaries! If our formula doesn't work at limits (like gravity going to zero), the derivation is incorrect." 
+                    }
+                ]
+            },
+            {
+                id: 5,
+                prompt: `Fantastic work! You've analyzed "${topic}" Socratic style: formulated the forces, linked the constraints, calculated the result, and verified limits. How confident do you feel about this now?`,
+                isFinal: true
+            }
+        ];
+    } else if (subject === "Biology" || subject === "Biology/Chemistry") {
+        steps = [
+            {
+                id: 1,
+                prompt: `Let's unpack "${topic}" systematically. What is the primary molecular component or cellular structure initiating the process of "${topic}"?`,
+                options: [
+                    { 
+                        text: "Enzymatic activation or specific receptor-ligand/nucleotide binding.", 
+                        nextId: 2, 
+                        points: 10, 
+                        positiveFeedback: "Spot on! Cellular processes are strictly regulated by enzyme activation or binding specificity." 
+                    },
+                    { 
+                        text: "Spontaneous biochemical synthesis without catalytic action.", 
+                        nextId: 2, 
+                        points: 3, 
+                        negativeFeedback: "Spontaneous reactions are too slow for biological systems. We need catalyst enzymes or primers to initiate the process." 
+                    }
+                ]
+            },
+            {
+                id: 2,
+                prompt: `Perfect. How do the key molecules/structures interact to propagate or regulate "${topic}"?`,
+                options: [
+                    { 
+                        text: "Through highly directional pathways or complementary base pairing.", 
+                        nextId: 3, 
+                        points: 10, 
+                        positiveFeedback: "Exactly! Directionality (like 5' to 3' synthesis) and structural complementarity ensure precision." 
+                    },
+                    { 
+                        text: "Random collision of substrates without orientation or direction.", 
+                        nextId: 3, 
+                        points: 3, 
+                        negativeFeedback: "Biological replication and synthesis are highly ordered and template-driven. Random collision is highly inefficient." 
+                    }
+                ]
+            },
+            {
+                id: 3,
+                prompt: `Now, consider the consequence of this directionality. How does the system resolve the opposite orientation or regulation during "${topic}"?`,
+                options: [
+                    { 
+                        text: "By utilizing discontinuous synthesis (like Okazaki fragments) or feedback loops.", 
+                        nextId: 4, 
+                        points: 10, 
+                        positiveFeedback: "Excellent! This clever molecular workaround resolves the structural constraints of the cell." 
+                    },
+                    { 
+                        text: "By changing the chemical properties of the enzymes to synthesize in both directions.", 
+                        nextId: 4, 
+                        points: 4, 
+                        negativeFeedback: "Remember, enzyme active sites are structurally rigid. DNA/RNA polymerases cannot change their synthesis direction." 
+                    }
+                ]
+            },
+            {
+                id: 4,
+                prompt: `Almost there! How does the cell or researcher verify the fidelity/correctness of "${topic}"?`,
+                options: [
+                    { 
+                        text: "Through proofreading exonucleases or control assays.", 
+                        nextId: 5, 
+                        points: 10, 
+                        positiveFeedback: "Superb! Proofreading activities reduce mutation rates from 1 in 10^5 to 1 in 10^9." 
+                    },
+                    { 
+                        text: "By ignoring errors and relying on post-replication repair only.", 
+                        nextId: 5, 
+                        points: 3, 
+                        negativeFeedback: "Proofreading is active during the process. Post-replication repair is the backup. Both are needed for fidelity." 
+                    }
+                ]
+            },
+            {
+                id: 5,
+                prompt: `Fantastic! You've successfully mapped "${topic}" Socratic style: identified the enzymes, explained the directionality constraints, resolved the lagging synthesis, and checked the proofreading. Ready for the next topic?`,
+                isFinal: true
+            }
+        ];
+    } else if (subject === "Chemistry") {
+        steps = [
+            {
+                id: 1,
+                prompt: `Let's explore "${topic}". What is the core atomic or molecular property that governs the behavior of "${topic}"?`,
+                options: [
+                    { 
+                        text: "Electronegativity, valence electron configuration, or chemical bonding type.", 
+                        nextId: 2, 
+                        points: 10, 
+                        positiveFeedback: "Exactly! Chemical properties are fundamentally determined by the behavior of valence electrons." 
+                    },
+                    { 
+                        text: "The color and physical state of the compound only.", 
+                        nextId: 2, 
+                        points: 3, 
+                        negativeFeedback: "Physical state is a macroscopic property. The microscopic behavior is driven by electron configurations." 
+                    }
+                ]
+            },
+            {
+                id: 2,
+                prompt: `Excellent. How do these molecular properties influence the interactions or equilibrium in "${topic}"?`,
+                options: [
+                    { 
+                        text: "By determining the thermodynamic stability and rate of reaction.", 
+                        nextId: 3, 
+                        points: 10, 
+                        positiveFeedback: "Correct! Kinetics and thermodynamics govern how fast and how far a reaction goes." 
+                    },
+                    { 
+                        text: "They have no effect; all reactions occur at identical speeds.", 
+                        nextId: 3, 
+                        points: 3, 
+                        negativeFeedback: "Reactions have widely varying rates and energy requirements based on activation energy and molecular orientation." 
+                    }
+                ]
+            },
+            {
+                id: 3,
+                prompt: `Perfect. If we apply the stoichiometry or equilibrium constants to "${topic}", what is the key relationship?`,
+                options: [
+                    { 
+                        text: "The ratio of products to reactants is proportional to the equilibrium constant.", 
+                        nextId: 4, 
+                        points: 10, 
+                        positiveFeedback: "Spot on! Le Chatelier's principle predicts how a system responds to changes in temperature, pressure, or concentration." 
+                    },
+                    { 
+                        text: "The concentration of products always equals the concentration of reactants.", 
+                        nextId: 4, 
+                        points: 3, 
+                        negativeFeedback: "Equilibrium means rates are equal, not concentrations. The ratio depends on the equilibrium constant." 
+                    }
+                ]
+            },
+            {
+                id: 4,
+                prompt: `Almost there! How can we experimentally verify the results of "${topic}"?`,
+                options: [
+                    { 
+                        text: "Using spectroscopy, titration, or pH measurement to monitor concentrations.", 
+                        nextId: 5, 
+                        points: 10, 
+                        positiveFeedback: "Superb! Analytical methods allow us to quantitatively verify reaction outcomes." 
+                    },
+                    { 
+                        text: "By testing physical touch or visual colors only without tools.", 
+                        nextId: 5, 
+                        points: 3, 
+                        negativeFeedback: "Safety first! Visual checks are not quantitative. Use analytical tools." 
+                    }
+                ]
+            },
+            {
+                id: 5,
+                prompt: `Fantastic! You've analyzed "${topic}" Socratic style: recalled electron behavior, mapped reaction rates, calculated equilibrium shifts, and verified analytically. Ready to proceed?`,
+                isFinal: true
+            }
+        ];
+    } else if (subject === "Math") {
+        steps = [
+            {
+                id: 1,
+                prompt: `Let's break down "${topic}". What is the foundational definition or axiom that defines "${topic}"?`,
+                options: [
+                    { 
+                        text: "The limit definition, algebraic identity, or vector space axioms.", 
+                        nextId: 2, 
+                        points: 10, 
+                        positiveFeedback: "Precisely! All mathematical derivations build strictly upon initial definitions and axioms." 
+                    },
+                    { 
+                        text: "An approximate numerical guess that works most of the time.", 
+                        nextId: 2, 
+                        points: 3, 
+                        negativeFeedback: "Approximations are useful for computation, but mathematics requires exact axiomatic definitions." 
+                    }
+                ]
+            },
+            {
+                id: 2,
+                prompt: `Correct. How are the operations or variables in "${topic}" mapped to each other?`,
+                options: [
+                    { 
+                        text: "Through linear transformations, functions, or differential relationships.", 
+                        nextId: 3, 
+                        points: 10, 
+                        positiveFeedback: "Exactly! Mapping inputs to outputs preserves key structural properties." 
+                    },
+                    { 
+                        text: "By assigning random values without a defined function mapping.", 
+                        nextId: 3, 
+                        points: 3, 
+                        negativeFeedback: "Mathematics is the study of patterns and relations. We require strict functional or relational mapping." 
+                    }
+                ]
+            },
+            {
+                id: 3,
+                prompt: `Now, let's carry out the derivation. What is the algebraic or calculus result when we apply this mapping to "${topic}"?`,
+                options: [
+                    { 
+                        text: "Solving the system yields a closed-form solution or convergent series.", 
+                        nextId: 4, 
+                        points: 10, 
+                        positiveFeedback: "Spot on! Finding a closed-form solution or proving convergence is the goal of the derivation." 
+                    },
+                    { 
+                        text: "We get an undefined expression that changes value randomly.", 
+                        nextId: 4, 
+                        points: 3, 
+                        negativeFeedback: "If the expression is undefined or divergent, we need to check boundary domains or limit constraints." 
+                    }
+                ]
+            },
+            {
+                id: 4,
+                prompt: `Almost there! How do we verify the mathematical validity of our solution for "${topic}"?`,
+                options: [
+                    { 
+                        text: "Check edge cases, test with simple integers, or plug the solution back into the original equation.", 
+                        nextId: 5, 
+                        points: 10, 
+                        positiveFeedback: "Superb! Plugging values back in or checking boundary conditions is the ultimate test of mathematical correctness." 
+                    },
+                    { 
+                        text: "Assert it is correct because it matches the template without verification.", 
+                        nextId: 5, 
+                        points: 3, 
+                        negativeFeedback: "Even templates can fail if the problem domain has exceptions (like division by zero). Always verify edge cases." 
+                    }
+                ]
+            },
+            {
+                id: 5,
+                prompt: `Excellent proof! You have solved "${topic}" Socratic style: established the definitions, mapped variables, computed the closed-form, and verified the boundaries. Ready for the next challenge?`,
+                isFinal: true
+            }
+        ];
+    } else { // Polity/History / General Studies / Fallback
+        steps = [
+            {
+                id: 1,
+                prompt: `Let's analyze "${topic}". What was the main historical catalyst or legislative objective behind the introduction of "${topic}"?`,
+                options: [
+                    { 
+                        text: "To standardize administration, raise predictable revenue, or secure civil rights.", 
+                        nextId: 2, 
+                        points: 10, 
+                        positiveFeedback: "Correct! Historical reforms almost always seek state stability, fiscal predictability, or societal order." 
+                    },
+                    { 
+                        text: "A sudden arbitrary decision without economic or social pressures.", 
+                        nextId: 2, 
+                        points: 4, 
+                        negativeFeedback: "Policy decisions are rarely made in a vacuum. They are driven by systemic financial, administrative, or social needs." 
+                    }
+                ]
+            },
+            {
+                id: 2,
+                prompt: `Right. How did this system classify or structure its subjects/territories to implement "${topic}"?`,
+                options: [
+                    { 
+                        text: "By categorizing them based on productivity, performance, or constitutional status.", 
+                        nextId: 3, 
+                        points: 10, 
+                        positiveFeedback: "Exactly! Effective administration requires clear classifications (like land grading or federal division)." 
+                    },
+                    { 
+                        text: "By treating all diverse entities with a single uniform rule without analysis.", 
+                        nextId: 3, 
+                        points: 3, 
+                        negativeFeedback: "A uniform rule without local adjustments is bound to fail in a diverse empire/state. Classification is key." 
+                    }
+                ]
+            },
+            {
+                id: 3,
+                prompt: `Excellent. What was the direct administrative or economic impact of "${topic}" on the state and its citizens?`,
+                options: [
+                    { 
+                        text: "It stabilized revenues and reduced arbitrary exploitation through clear guidelines.", 
+                        nextId: 4, 
+                        points: 10, 
+                        positiveFeedback: "Spot on! Predictable guidelines benefit both the state treasury and the populace by reducing corruption." 
+                    },
+                    { 
+                        text: "It caused immediate collapse of the entire economy due to high taxes.", 
+                        nextId: 4, 
+                        points: 3, 
+                        negativeFeedback: "While tax burden was a factor, successful systems (like Dahsala) stabilized the economy for decades. Look for predictability." 
+                    }
+                ]
+            },
+            {
+                id: 4,
+                prompt: `Almost there! How do modern historians or legal scholars evaluate the long-term legacy of "${topic}"?`,
+                options: [
+                    { 
+                        text: "By comparing it with contemporary records and assessing administrative durability.", 
+                        nextId: 5, 
+                        points: 10, 
+                        positiveFeedback: "Superb! Analyzing primary sources and durability gives us objective historical insights." 
+                    },
+                    { 
+                        text: "By accepting imperial or government decrees as absolute truth.", 
+                        nextId: 5, 
+                        points: 3, 
+                        negativeFeedback: "Critical analysis is essential. Official decrees often mask administrative failures or local resistance." 
+                    }
+                ]
+            },
+            {
+                id: 5,
+                prompt: `Wonderful historical analysis! You have mapped "${topic}" Socratic style: evaluated the motivation, analyzed the structural classifications, traced the socioeconomic impact, and verified historical sources. Ready for the next section?`,
+                isFinal: true
+            }
+        ];
+    }
+    
+    return {
+        title: `${topic} Breakdown`,
+        subject: subject,
+        doubt: query,
+        steps: steps
+    };
+}
+
+function isCustomQuery(query) {
+    if (!query) return false;
+    const text = query.toLowerCase().trim();
+    if (text.length < 5) return false;
+    
+    // List of generic phrases to ignore (default to presets)
+    const genericPhrases = [
+        "help",
+        "i need help",
+        "i need help with this question",
+        "some gibberish input text",
+        "hello",
+        "hi",
+        "start",
+        "testing",
+        "run tests"
+    ];
+    
+    if (genericPhrases.some(phrase => text === phrase || text.startsWith(phrase))) {
+        return false;
+    }
+    
+    // Check if it has subject keywords or question markers
+    const hasKeywords = /\b(force|forces|acceleration|gravity|velocity|mass|friction|torque|cylinder|incline|motion|energy|work|momentum|speed|rotation|wave|optics|light|electricity|charge|magnet|gravitational|newton|dynamics|kinematics|dna|rna|cell|cells|replication|gene|genes|photosynthesis|protein|proteins|enzyme|enzymes|mitochondria|nucleus|organism|plant|animal|evolution|respiration|heart|blood|chromosome|chromosomes|mitosis|meiosis|nucleotide|ribosome|bacteria|virus|genetic|constitution|parliament|dahsala|mughal|akbar|history|india|revenue|tax|government|president|court|law|laws|british|revolution|emperor|ruler|treaty|dynasty|empire|democracy|legislative|judicial|sovereign|atom|atoms|molecule|molecules|reaction|reactions|acid|acids|base|bases|chemical|bond|bonds|electron|electrons|gas|gases|solution|metal|metals|periodic|organic|covalent|ionic|stoichiometry|equilibrium|derivative|derivatives|integral|integrals|equation|equations|matrix|vector|vectors|geometry|triangle|limit|limits|function|functions|algebra|probability|calculus|theorem|solve|algebraic|science|study|concept|theory)\b/i.test(text);
+    
+    const isQuestion = /\b(why|how|what|explain|describe|who|where|when|can you|could you)\b/i.test(text);
+    
+    return hasKeywords || isQuestion;
+}
+
 function getSocraticResponse(state, userMessage) {
     const exam = state.userProfile.targetExam || 'jee';
-    const tree = socraticTrees[exam] || socraticTrees.jee;
+    
+    // Check if we have an active dynamic tree in progress
+    let tree = state.currentDynamicTree;
     
     if (state.socraticStep === 0) {
+        // We are initiating a new Socratic query.
+        // First determine if we should match a preset or generate dynamically.
+        const queryText = userMessage.toLowerCase();
+        
+        let matchedPresetKey = null;
+        if (queryText.includes("rolling cylinder") || queryText.includes("incline θ") || queryText.includes("solid cylinder") || queryText.includes("slipping down")) {
+            matchedPresetKey = "jee";
+        } else if (queryText.includes("replication") || queryText.includes("semi-discontinuous") || queryText.includes("lagging strand") || queryText.includes("replication fork")) {
+            matchedPresetKey = "neet";
+        } else if (queryText.includes("dahsala") || queryText.includes("todar mal") || queryText.includes("akbar") || queryText.includes("revenue system")) {
+            matchedPresetKey = "upsc";
+        }
+        
+        if (matchedPresetKey) {
+            tree = socraticTrees[matchedPresetKey];
+            state.currentDynamicTree = null; // reset to use presets
+        } else if (isCustomQuery(userMessage)) {
+            // Generate custom dynamic Socratic tree
+            tree = generateDynamicSocraticTree(userMessage, exam);
+            state.currentDynamicTree = tree;
+        } else {
+            // Fall back to preset based on targetExam
+            tree = socraticTrees[exam] || socraticTrees.jee;
+            state.currentDynamicTree = null;
+        }
+        
         state.socraticStep = 1;
         return {
             text: `Let's work on this together. The problem you uploaded is: "${tree.doubt}".\n\n${tree.steps[0].prompt}`,
@@ -166,10 +715,16 @@ function getSocraticResponse(state, userMessage) {
         };
     }
     
+    // If we have an active dynamic tree, use it. Otherwise fall back to the preset based on profile target exam.
+    if (!tree) {
+        tree = socraticTrees[exam] || socraticTrees.jee;
+    }
+    
     const currentStepIndex = state.socraticStep - 1;
     const currentStep = tree.steps[currentStepIndex];
     
     if (!currentStep) {
+        state.currentDynamicTree = null;
         return {
             text: "You have completed this doubt! What topic would you like to review next?",
             options: [],
@@ -190,6 +745,7 @@ function getSocraticResponse(state, userMessage) {
         
         if (nextStep.isFinal) {
             state.socraticStep = 0; 
+            state.currentDynamicTree = null; // clear cached tree
             return {
                 text: `${matchingOption.positiveFeedback || matchingOption.negativeFeedback || ""}\n\n${nextStep.prompt}`,
                 options: [],
@@ -205,6 +761,7 @@ function getSocraticResponse(state, userMessage) {
     }
     
     state.socraticStep = 0;
+    state.currentDynamicTree = null;
     return {
         text: "I see. Let's reset this concept. Ask another doubt!",
         options: []
