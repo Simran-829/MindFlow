@@ -119,11 +119,11 @@
             </section>
 
             <!-- Right Side: MindFlow Orb state panel & Stress Gauges -->
-            <aside class="aura-sidebar" aria-label="MindFlow Telemetry Status">
+            <aside class="mindflow-sidebar" aria-label="MindFlow Telemetry Status">
                 <div class="glass-panel orb-panel" id="orb-status-panel">
-                    <div class="aura-orb-wrapper">
-                        <div class="aura-orb" id="orb-glow-sphere" aria-hidden="true"></div>
-                        <div class="aura-orb-core">
+                    <div class="mindflow-orb-wrapper">
+                        <div class="mindflow-orb" id="orb-glow-sphere" aria-hidden="true"></div>
+                        <div class="mindflow-orb-core">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <circle cx="12" cy="12" r="10"/>
                                 <path d="M12 8v4M12 16h.01"/>
@@ -340,11 +340,11 @@
             </div>
 
             <!-- Right Side: Exam Focus widget panel -->
-            <div class="aura-sidebar">
+            <div class="mindflow-sidebar">
                 <div class="glass-panel orb-panel">
-                    <div class="aura-orb-wrapper">
-                        <div class="aura-orb" id="exam-orb-glow" aria-hidden="true"></div>
-                        <div class="aura-orb-core">
+                    <div class="mindflow-orb-wrapper">
+                        <div class="mindflow-orb" id="exam-orb-glow" aria-hidden="true"></div>
+                        <div class="mindflow-orb-core">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <circle cx="12" cy="12" r="10"/>
                                 <path d="M8 12.5l3 3 5-6"/>
@@ -402,12 +402,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Target Exam</label>
-                    <div class="exam-select-grid">
-                        <div class="exam-card selected" data-exam="jee" tabindex="0">JEE Main/Adv</div>
-                        <div class="exam-card" data-exam="neet" tabindex="0">NEET Biology</div>
-                        <div class="exam-card" data-exam="upsc" tabindex="0">UPSC Civils</div>
-                        <div class="exam-card" data-exam="cat" tabindex="0">CAT MBA</div>
+                    <label id="target-exam-label">Target Exam</label>
+                    <div class="exam-select-grid" role="radiogroup" aria-labelledby="target-exam-label">
+                        <div class="exam-card selected" data-exam="jee" role="radio" aria-checked="true" tabindex="0">JEE Main/Adv</div>
+                        <div class="exam-card" data-exam="neet" role="radio" aria-checked="false" tabindex="0">NEET Biology</div>
+                        <div class="exam-card" data-exam="upsc" role="radio" aria-checked="false" tabindex="0">UPSC Civils</div>
+                        <div class="exam-card" data-exam="cat" role="radio" aria-checked="false" tabindex="0">CAT MBA</div>
+                        <div class="exam-card" data-exam="gate" role="radio" aria-checked="false" tabindex="0">GATE Tech</div>
+                        <div class="exam-card" data-exam="cuet" role="radio" aria-checked="false" tabindex="0">CUET UG</div>
+                        <div class="exam-card" data-exam="boards" role="radio" aria-checked="false" tabindex="0">Board Exams</div>
                     </div>
                 </div>
 
@@ -501,6 +504,9 @@
                         <option value="neet">NEET Biology</option>
                         <option value="upsc">UPSC Civils</option>
                         <option value="cat">CAT MBA</option>
+                        <option value="gate">GATE Tech</option>
+                        <option value="cuet">CUET UG</option>
+                        <option value="boards">Board Exams</option>
                     </select>
                 </div>
 

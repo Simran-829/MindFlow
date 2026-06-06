@@ -1,5 +1,5 @@
 /**
- * Aura Canvas Analytics Dashboard
+ * MindFlow Canvas Analytics Dashboard
  * Implements high-performance, lightweight charting routines without heavy charting libraries.
  */
 

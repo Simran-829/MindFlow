@@ -74,7 +74,7 @@ function initApp() {
     setupStudyWorkspace();
     setupMockExam();
     checkExistingProfile();
-    updateAuraStateUI();
+    updateMindFlowStateUI();
 }
 
 // Check if profile and chat logs exist in localstorage to bypass onboarding
@@ -113,7 +113,7 @@ function checkExistingProfile() {
                     if (item.sender === 'user') {
                         renderUserBubble(item.text, item.time);
                     } else {
-                        renderAuraBubble(item.text, item.time);
+                        renderMindFlowBubble(item.text, item.time);
                     }
                 });
                 scrollToBottom(box);
@@ -124,7 +124,7 @@ function checkExistingProfile() {
     } else {
         // First welcome if profile exists but no chats
         if (cachedProfile) {
-            appendAuraMessage(`Hello ${escapeHTML(state.userProfile.name)}! I am MindFlow, your Socratic Study-Flow Co-pilot. Whenever you hit a roadblock in your studies, type it here or dictate it to me. I'll help you break it down step-by-step.`);
+            appendMindFlowMessage(`Hello ${escapeHTML(state.userProfile.name)}! I am MindFlow, your Socratic Study-Flow Co-pilot. Whenever you hit a roadblock in your studies, type it here or dictate it to me. I'll help you break it down step-by-step.`);
         }
     }
 }
@@ -145,8 +145,12 @@ function setupOnboarding() {
     const cards = document.querySelectorAll(".exam-card");
     cards.forEach(card => {
         card.addEventListener("click", () => {
-            cards.forEach(c => c.classList.remove("selected"));
+            cards.forEach(c => {
+                c.classList.remove("selected");
+                c.setAttribute("aria-checked", "false");
+            });
             card.classList.add("selected");
+            card.setAttribute("aria-checked", "true");
             state.userProfile.targetExam = card.dataset.exam;
         });
         card.addEventListener("keydown", (e) => {
@@ -189,7 +193,7 @@ function setupOnboarding() {
         loadExamPresetDoubtText();
         
         // Push initial greetings from MindFlow
-        appendAuraMessage(`Hello ${escapeHTML(state.userProfile.name)}! I am MindFlow, your Socratic Study-Flow Co-pilot. Whenever you hit a roadblock in your studies, type it here or dictate it to me. I'll help you break it down step-by-step.`);
+        appendMindFlowMessage(`Hello ${escapeHTML(state.userProfile.name)}! I am MindFlow, your Socratic Study-Flow Co-pilot. Whenever you hit a roadblock in your studies, type it here or dictate it to me. I'll help you break it down step-by-step.`);
     });
 }
 
@@ -293,7 +297,7 @@ function setupStudyWorkspace() {
             startVoiceAnalysis("audio-wave-container", (audioData) => {
                 if (audioData && audioData.jitter > 0) {
                     state.voiceTension = audioData.jitter;
-                    updateAuraStateUI();
+                    updateMindFlowStateUI();
                     
                     if (state.voiceTension > 0.82) {
                         micBtn.click(); // Stop mic
@@ -418,7 +422,7 @@ function setupStudyWorkspace() {
         settingsBtn.focus(); // Return focus for accessibility
         
         loadExamPresetDoubtText();
-        updateAuraStateUI();
+        updateMindFlowStateUI();
     });
 
     btnClearData.addEventListener("click", () => {
@@ -446,7 +450,7 @@ function setupStudyWorkspace() {
         settingsModal.classList.add("hidden");
         settingsBtn.focus(); // Return focus for accessibility
         
-        appendAuraMessage(`Hello ${escapeHTML(state.userProfile.name)}! Chat history has been cleared. Ask a new doubt whenever you are ready.`);
+        appendMindFlowMessage(`Hello ${escapeHTML(state.userProfile.name)}! Chat history has been cleared. Ask a new doubt whenever you are ready.`);
     });
 }
 
@@ -459,6 +463,14 @@ function loadExamPresetDoubtText() {
         input.value = "Why is DNA replication semi-discontinuous with leading and lagging strands?";
     } else if (exam === "upsc") {
         input.value = "Can you explain the main points of Raja Todar Mal's Dahsala system?";
+    } else if (exam === "cat") {
+        input.value = "Can you explain the logic behind permutation and combination formulas?";
+    } else if (exam === "gate") {
+        input.value = "Explain the concept of pipelining hazard in computer organization.";
+    } else if (exam === "cuet") {
+        input.value = "What is the structure and features of the Indian Constitution?";
+    } else if (exam === "boards") {
+        input.value = "Explain the derivation of the quadratic formula step-by-step.";
     }
     const counter = document.getElementById("char-counter");
     if (counter) counter.textContent = `${input.value.length} / 1000`;
@@ -496,10 +508,10 @@ function submitUserDoubt() {
         return;
     }
 
-    appendAuraTypingIndicator();
+    appendMindFlowTypingIndicator();
     
     setTimeout(() => {
-        removeAuraTypingIndicator();
+        removeMindFlowTypingIndicator();
         toggleWorkspaceInputs(true);
         
         let response = null;
@@ -512,7 +524,7 @@ function submitUserDoubt() {
             };
         }
         
-        appendAuraMessage(response.text);
+        appendMindFlowMessage(response.text);
         
         if (response.options && response.options.length > 0) {
             appendSocraticOptions(response.options);
@@ -521,7 +533,7 @@ function submitUserDoubt() {
         persistChatState();
         
         state.fatigueScore = Math.min(1.0, state.fatigueScore + 0.04);
-        updateAuraStateUI();
+        updateMindFlowStateUI();
         
     }, 1200);
 }
@@ -562,7 +574,7 @@ function evaluateKeystrokeStress() {
     if (avgDelay < 70) stressVal += 0.15;
     
     state.stressScore = Math.max(0.1, Math.min(0.95, stressVal));
-    updateAuraStateUI();
+    updateMindFlowStateUI();
 }
 
 // Simulator & Control adjustments
@@ -576,7 +588,7 @@ function setupSimulatorControls() {
         const val = parseInt(e.target.value);
         document.getElementById("sim-typing-txt").textContent = val > 75 ? "Panic!" : val > 45 ? "Tension" : "Low";
         state.stressScore = val / 100;
-        updateAuraStateUI();
+        updateMindFlowStateUI();
         
         if (state.stressScore > 0.8) {
             triggerCalmingInterception();
@@ -587,7 +599,7 @@ function setupSimulatorControls() {
         const val = parseInt(e.target.value);
         document.getElementById("sim-vocal-txt").textContent = val > 75 ? "High Jitter" : val > 45 ? "Anxious" : "Low";
         state.voiceTension = val / 100;
-        updateAuraStateUI();
+        updateMindFlowStateUI();
     });
 
     btnPanic.addEventListener("click", () => {
@@ -595,7 +607,7 @@ function setupSimulatorControls() {
         state.voiceTension = 0.90;
         typingSlider.value = 95;
         vocalSlider.value = 90;
-        updateAuraStateUI();
+        updateMindFlowStateUI();
         triggerCalmingInterception();
     });
 
@@ -607,7 +619,7 @@ function setupSimulatorControls() {
         vocalSlider.value = 10;
         backspaceCount = 0;
         keystrokeIntervals = [];
-        updateAuraStateUI();
+        updateMindFlowStateUI();
         showToast("Cognitive wellness restored to baseline.", "calm");
     });
 
@@ -618,7 +630,7 @@ function setupSimulatorControls() {
 }
 
 // Dynamic UI updates based on Stress Scores
-function updateAuraStateUI() {
+function updateMindFlowStateUI() {
     const root = document.documentElement;
     const stateTxt = document.getElementById("orb-state-txt");
     const stateDesc = document.getElementById("orb-state-desc");
@@ -751,10 +763,10 @@ function closeCalmingModal() {
     
     state.stressScore = 0.15;
     state.voiceTension = 0.10;
-    updateAuraStateUI();
+    updateMindFlowStateUI();
     
     showToast("Welcome back! Cognitive stress reduced.", "calm");
-    appendAuraMessage("I hope that helped clear the fog. Now, let's take another look at that problem. What seems to be the main point of confusion?");
+    appendMindFlowMessage("I hope that helped clear the fog. Now, let's take another look at that problem. What seems to be the main point of confusion?");
 }
 
 // Mock Exam View Coordinator
@@ -783,7 +795,7 @@ function setupMockExam() {
         } else {
             showToast("Response recorded.", "focus");
             state.stressScore = Math.min(1.0, state.stressScore + 0.18);
-            updateAuraStateUI();
+            updateMindFlowStateUI();
         }
         
         nextExamQuestion();
@@ -791,7 +803,7 @@ function setupMockExam() {
 
     stressTrigger.addEventListener("click", () => {
         state.stressScore = 0.90;
-        updateAuraStateUI();
+        updateMindFlowStateUI();
         triggerCalmingInterception();
     });
 }
@@ -843,14 +855,14 @@ function appendUserMessage(text) {
     persistChatState();
 }
 
-function appendAuraMessage(text) {
+function appendMindFlowMessage(text) {
     const box = document.getElementById("chat-box");
     const time = getCurrentTime();
     
-    renderAuraBubble(text, time);
+    renderMindFlowBubble(text, time);
     scrollToBottom(box);
     
-    state.chatHistory.push({ sender: 'aura', text, time });
+    state.chatHistory.push({ sender: 'mindflow', text, time });
     persistChatState();
 }
 
@@ -866,10 +878,10 @@ function renderUserBubble(text, time) {
     box.appendChild(msg);
 }
 
-function renderAuraBubble(text, time) {
+function renderMindFlowBubble(text, time) {
     const box = document.getElementById("chat-box");
     const msg = document.createElement("div");
-    msg.className = "message aura";
+    msg.className = "message mindflow";
     const formatted = escapeHTML(text).replace(/&lt;br&gt;/g, '<br>').replace(/\n/g, '<br>');
     msg.innerHTML = `
         <div class="message-bubble">${formatted}</div>
@@ -878,11 +890,11 @@ function renderAuraBubble(text, time) {
     box.appendChild(msg);
 }
 
-function appendAuraTypingIndicator() {
+function appendMindFlowTypingIndicator() {
     const box = document.getElementById("chat-box");
     const msg = document.createElement("div");
-    msg.className = "message aura";
-    msg.id = "aura-typing-indicator";
+    msg.className = "message mindflow";
+    msg.id = "mindflow-typing-indicator";
     msg.innerHTML = `
         <div class="message-bubble" style="padding: 0.5rem 1rem; display:flex; gap: 4px; align-items:center;">
             <span style="width:6px; height:6px; background:#6b7280; border-radius:50%; animation: floatOrb 1s infinite alternate;"></span>
@@ -894,8 +906,8 @@ function appendAuraTypingIndicator() {
     scrollToBottom(box);
 }
 
-function removeAuraTypingIndicator() {
-    const el = document.getElementById("aura-typing-indicator");
+function removeMindFlowTypingIndicator() {
+    const el = document.getElementById("mindflow-typing-indicator");
     if (el) el.remove();
 }
 
@@ -923,14 +935,14 @@ function appendSocraticOptions(options) {
 function submitUserOptionChoice(text) {
     toggleWorkspaceInputs(false);
     appendUserMessage(text);
-    appendAuraTypingIndicator();
+    appendMindFlowTypingIndicator();
     
     setTimeout(() => {
-        removeAuraTypingIndicator();
+        removeMindFlowTypingIndicator();
         toggleWorkspaceInputs(true);
         
         const response = getSocraticResponse(state, text);
-        appendAuraMessage(response.text);
+        appendMindFlowMessage(response.text);
         
         if (response.options && response.options.length > 0) {
             appendSocraticOptions(response.options);
