@@ -163,4 +163,21 @@ describe('MindFlow DOM Flow Integration Tests', () => {
         const profile = JSON.parse(localStorage.getItem('mindflow_user_profile'));
         expect(profile.name).toBe('Rohan Modified');
     });
+
+    it('should generate a privacy-safe parental digest when clicked', () => {
+        localStorage.setItem('mindflow_user_profile', JSON.stringify({ name: 'Rohan', targetExam: 'jee', targetHours: 10 }));
+        const event = new Event('DOMContentLoaded');
+        document.dispatchEvent(event);
+
+        const parentReportBtn = document.getElementById('generate-parent-report-btn');
+        const parentReportOutput = document.getElementById('parent-report-output');
+
+        expect(parentReportOutput.classList.contains('hidden')).toBe(true);
+
+        fireEvent.click(parentReportBtn);
+
+        expect(parentReportOutput.classList.contains('hidden')).toBe(false);
+        expect(parentReportOutput.innerHTML).toContain('Rohan');
+        expect(parentReportOutput.innerHTML).toContain('JEE');
+    });
 });

@@ -289,11 +289,13 @@
                     <h2>Parent Wellness Portal Preview</h2>
                     <span class="logo-badge" style="background: rgba(161,128,255,0.1); border-color: rgba(161,128,255,0.2); color: #a180ff;">Privacy Safe</span>
                 </div>
-                <div style="display: flex; gap: 2rem; margin-top: 0.5rem; align-items: center; justify-content: space-between;">
-                    <div style="max-width: 60%; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+                <div style="display: flex; gap: 2rem; margin-top: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div style="flex: 1 1 50%; min-width: 300px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
                         MindFlow protects student details (chat transcripts and search topics) but aggregates general wellness signals for parents. This reassures parents and reduces external expectations pressure without compromising the student's personal safe space.
+                        <button class="sample-btn" id="generate-parent-report-btn" style="margin-top: 1.25rem; width: 100%; display: block;">Generate Shareable Parent Digest</button>
+                        <div id="parent-report-output" class="decompression-exercise hidden" style="margin-top: 1.25rem; width: 100%;"></div>
                     </div>
-                    <div class="decompression-exercise" style="max-width: 35%; margin-top: 0;">
+                    <div class="decompression-exercise" style="flex: 1 1 35%; min-width: 250px; margin-top: 0;">
                         <h4>Current Digest sent to Parent:</h4>
                         <p><strong>Aarav's State:</strong> 🟢 Focused and emotionally stable. 3 mock tests completed with positive coping methods.</p>
                         <p><strong>Parent Recommendation:</strong> Aarav worked hard on organic chemistry. Offer a word of encouragement without mentioning test marks.</p>

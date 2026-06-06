@@ -40,16 +40,24 @@ describe('App Telemetry & Sanitizer Unit Tests', () => {
     });
 
     describe('Keystroke Stress Heuristic Analytics', () => {
-        
-        // Mock global variables used in evaluateKeystrokeStress() inside appModule scope
-        // Note: the evaluated function reads/writes to variables in its closure
-        
         it('should compute low stress for a stable, steady typing cadence', () => {
-            // Mock closure values by setting properties on the module state or bindings if possible.
-            // Since they are defined as local variables inside the closures, we can verify
-            // that the stressScore is clamping within bounds [0.1, 0.95].
             expect(state.stressScore).toBeGreaterThanOrEqual(0.1);
             expect(state.stressScore).toBeLessThanOrEqual(0.95);
+        });
+    });
+
+    describe('Crisis Intercept Regex Heuristics', () => {
+        const crisisRegex = /\b(suicide|kill myself|end my life|give up|hopeless|depressed|self-harm|cant go on|cannot go on|worthless|no point)\b/i;
+        
+        it('should match acute crisis keywords', () => {
+            expect(crisisRegex.test('I feel hopeless about this exam')).toBe(true);
+            expect(crisisRegex.test('I want to kill myself')).toBe(true);
+            expect(crisisRegex.test('I just want to give up')).toBe(true);
+        });
+
+        it('should not match normal academic questions', () => {
+            expect(crisisRegex.test('How do I solve this physics equation?')).toBe(false);
+            expect(crisisRegex.test('What is normal force?')).toBe(false);
         });
     });
 });

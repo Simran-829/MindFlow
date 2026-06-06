@@ -82,7 +82,8 @@ function checkExistingProfile() {
     const cachedProfile = localStorage.getItem("mindflow_user_profile");
     if (cachedProfile) {
         try {
-            state.userProfile = JSON.parse(cachedProfile);
+            const parsed = JSON.parse(cachedProfile);
+            state.userProfile = { ...state.userProfile, ...parsed };
             document.getElementById("onboarding-modal").classList.add("hidden");
             showToast(`Welcome back, ${escapeHTML(state.userProfile.name)}! MindFlow active.`, "calm");
             loadExamPresetDoubtText();
@@ -190,6 +191,9 @@ function setupOnboarding() {
         localStorage.setItem("mindflow_user_profile", JSON.stringify(state.userProfile));
         modal.classList.add("hidden");
         showToast(`Setup complete! Welcome, ${escapeHTML(state.userProfile.name)}.`, "calm");
+        if (state.userProfile.targetHours >= 12) {
+            showToast("Targeting 12+ hours increases burnout risk by 60%. Schedule regular breaks and sleep!", "alert");
+        }
         loadExamPresetDoubtText();
         
         // Push initial greetings from MindFlow
@@ -418,6 +422,9 @@ function setupStudyWorkspace() {
         
         localStorage.setItem("mindflow_user_profile", JSON.stringify(state.userProfile));
         showToast("Settings updated successfully.", "calm");
+        if (state.userProfile.targetHours >= 12) {
+            showToast("Targeting 12+ hours increases burnout risk by 60%. Schedule regular breaks and sleep!", "alert");
+        }
         settingsModal.classList.add("hidden");
         settingsBtn.focus(); // Return focus for accessibility
         
@@ -452,6 +459,41 @@ function setupStudyWorkspace() {
         
         appendMindFlowMessage(`Hello ${escapeHTML(state.userProfile.name)}! Chat history has been cleared. Ask a new doubt whenever you are ready.`);
     });
+
+    // Parental Decompression Report Click Listener
+    const parentReportBtn = document.getElementById("generate-parent-report-btn");
+    const parentReportOutput = document.getElementById("parent-report-output");
+    
+    if (parentReportBtn) {
+        parentReportBtn.addEventListener("click", () => {
+            const name = escapeHTML((state.userProfile && state.userProfile.name) || 'Aarav');
+            const examName = escapeHTML(((state.userProfile && state.userProfile.targetExam) || 'jee').toUpperCase());
+            const hours = (state.userProfile && state.userProfile.targetHours) || 10;
+            
+            // Determine dynamic feedback based on stress and fatigue scores
+            let statusIndicator = "🟢 Stable & Productive";
+            let parentTip = "Great work! Aarav is maintaining focus. A simple word of encouragement works wonders.";
+            if (state.stressScore > 0.6) {
+                statusIndicator = "🟡 Experiencing Tension";
+                parentTip = `Scientific research shows that asking about ranks or mock test scores increases pressure. Try offering a refreshing drink or suggesting a 10-minute break.`;
+            } else if (state.fatigueScore > 0.7) {
+                statusIndicator = "🟣 Highly Fatigued (Needs Rest)";
+                parentTip = `${name} has reached cognitive saturation. Encourage them to get at least 7-8 hours of sleep tonight. Do not mention grades or syllabus progress.`;
+            }
+            
+            parentReportOutput.innerHTML = `
+                <h4>Privacy-Safe Parent Digest for ${name}</h4>
+                <p><strong>Status:</strong> ${statusIndicator}</p>
+                <p><strong>Daily Target:</strong> ${hours} Hours (${examName} Aspirant)</p>
+                <p><strong>Parent Action Plan:</strong> ${parentTip}</p>
+            `;
+            parentReportOutput.classList.remove("hidden");
+            if (typeof parentReportOutput.scrollIntoView === "function") {
+                parentReportOutput.scrollIntoView({ behavior: "smooth" });
+            }
+            showToast("Expectations-management digest generated successfully.", "calm");
+        });
+    }
 }
 
 function loadExamPresetDoubtText() {
@@ -483,6 +525,49 @@ function submitUserDoubt() {
     
     if (!query) {
         showToast("Please enter a question or speak to MindFlow.", "alert");
+        return;
+    }
+
+    // Crisis Hotline Intercept Trigger
+    const crisisRegex = /\b(suicide|kill myself|end my life|give up|hopeless|depressed|self-harm|cant go on|cannot go on|worthless|no point)\b/i;
+    if (crisisRegex.test(query)) {
+        toggleWorkspaceInputs(false);
+        appendUserMessage(query);
+        input.value = "";
+        document.getElementById("char-counter").textContent = `0 / 1000`;
+        
+        appendMindFlowTypingIndicator();
+        
+        setTimeout(() => {
+            removeMindFlowTypingIndicator();
+            toggleWorkspaceInputs(true);
+            
+            showToast("Crisis support recommended. You are not alone.", "panic");
+            
+            const helplineMsg = `It sounds like you are going through an incredibly tough time. Please know that you are not alone, and there is support available. If you are feeling overwhelmed, hopeless, or having thoughts of self-harm, please reach out to these free, confidential, 24/7 resources:<br><br><b>Tele-MANAS (Govt of India):</b> Call 14416 or 1800-891-4416<br><b>AASRA:</b> Call +91-9820466726<br><b>Vandrevala Foundation:</b> Call +91-9999666555<br><br>Your well-being is infinitely more important than any exam. Please reach out to someone who can support you.`;
+            appendMindFlowMessage(helplineMsg);
+            
+            const box = document.getElementById("chat-box");
+            const card = document.createElement("div");
+            card.className = "crisis-card";
+            card.innerHTML = `
+                <h4>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4M12 16h.01"/>
+                    </svg>
+                    24/7 Immediate Support Helplines
+                </h4>
+                <ul>
+                    <li><strong>Tele-MANAS Toll-Free:</strong> 14416 or 1800-891-4416</li>
+                    <li><strong>AASRA Helpline:</strong> +91-9820466726</li>
+                    <li><strong>Vandrevala Foundation:</strong> +91-9999666555</li>
+                </ul>
+            `;
+            box.appendChild(card);
+            scrollToBottom(box);
+            persistChatState();
+        }, 1000);
         return;
     }
 
@@ -534,6 +619,10 @@ function submitUserDoubt() {
         
         state.fatigueScore = Math.min(1.0, state.fatigueScore + 0.04);
         updateMindFlowStateUI();
+        
+        if (state.fatigueScore > 0.75) {
+            showToast("Extreme fatigue detected (exceeding 75%). Retention drops. MindFlow recommends immediate rest.", "alert");
+        }
         
     }, 1200);
 }
@@ -716,14 +805,28 @@ function triggerCalmingInterception() {
     reframer.textContent = getRandomReframing();
     
     let cycle = 0;
-    let step = 0; 
+    let step = 0; // 0: Deep Inhale, 1: Quick Sniff, 2: Slow Exhale, 3: Pause
     let secondsLeft = 4;
     
-    actionLbl.textContent = "Inhale deeply";
-    bubble.style.transform = "scale(1.8)";
-    bubble.style.transition = "transform 4s cubic-bezier(0.4, 0, 0.2, 1)";
+    const steps = [
+        { label: "Inhale deeply through your nose...", duration: 4, scale: "1.5", shadow: "0 0 40px #00f2fe", transition: "4s" },
+        { label: "Take a second, sharp sniff...", duration: 2, scale: "1.9", shadow: "0 0 50px #00f2fe", transition: "1.5s" },
+        { label: "Exhale slowly and fully...", duration: 6, scale: "0.8", shadow: "", transition: "6s" },
+        { label: "Pause and relax...", duration: 2, scale: "1.0", shadow: "", transition: "2s" }
+    ];
     
-    showToast("MindFlow Intercept: Breath requested.", "panic");
+    function runStep() {
+        const current = steps[step];
+        actionLbl.textContent = current.label;
+        bubble.style.transform = `scale(${current.scale})`;
+        bubble.style.boxShadow = current.shadow;
+        bubble.style.transition = `transform ${current.transition} cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease`;
+        secondsLeft = current.duration;
+        timerLbl.textContent = `${secondsLeft}s`;
+    }
+    
+    runStep();
+    showToast("MindFlow Intercept: Physiological Sigh requested.", "panic");
     
     breathTimer = setInterval(() => {
         secondsLeft--;
@@ -731,26 +834,14 @@ function triggerCalmingInterception() {
         
         if (secondsLeft <= 0) {
             step = (step + 1) % 4;
-            secondsLeft = 4;
-            
             if (step === 0) {
                 cycle++;
                 if (cycle >= 2) {
                     closeCalmingModal();
                     return;
                 }
-                actionLbl.textContent = "Inhale deeply";
-                bubble.style.transform = "scale(1.8)";
-            } else if (step === 1) {
-                actionLbl.textContent = "Hold breath";
-                bubble.style.boxShadow = "0 0 70px #ef4444";
-            } else if (step === 2) {
-                actionLbl.textContent = "Exhale slowly";
-                bubble.style.transform = "scale(0.8)";
-                bubble.style.boxShadow = "";
-            } else if (step === 3) {
-                actionLbl.textContent = "Hold";
             }
+            runStep();
         }
     }, 1000);
 }

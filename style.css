@@ -1367,3 +1367,37 @@ input:checked + .slider:before {
         grid-template-columns: 1fr;
     }
 }
+
+/* Crisis Helpline Cards & Parent Portal Enhancements */
+.crisis-card {
+    background: rgba(239, 68, 68, 0.04);
+    border: 1.5px solid rgba(239, 68, 68, 0.25);
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.05);
+}
+.crisis-card h4 {
+    color: #ef4444;
+    font-family: var(--font-heading);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.crisis-card ul {
+    margin: 0.5rem 0 0 1rem;
+    padding: 0;
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+}
+.crisis-card li {
+    margin-bottom: 0.4rem;
+}
+
+#parent-report-output {
+    background: rgba(161, 128, 255, 0.03);
+    border-color: rgba(161, 128, 255, 0.2);
+    box-shadow: 0 0 15px rgba(161, 128, 255, 0.05);
+}
